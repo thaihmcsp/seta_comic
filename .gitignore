@@ -1,0 +1,40 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env
+.env.*         # e.g. .env.local, .env.dev
+
+# Editor config
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Unit test / coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# mypy & pyright
+.mypy_cache/
+.pyright/
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# Cache
+.cache/
+*.egg-inf*
