@@ -23,3 +23,12 @@ alembic upgrade head
 ```
 fastapi run app/main.py
 ```
+
+# folder useage
+
+### services folder:
+  user for bussiness logic
+### schemas folder:
+  for DTOs validation & responses
+### utils:
+  for common logic
