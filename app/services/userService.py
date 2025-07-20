@@ -8,7 +8,14 @@ async def listUser(session: AsyncSession):
   return [dict(row._mapping) for row in rows]
 
 async def getUserByUserId (user_id: int, session: AsyncSession):
-  sql = text("SELECT * FROM users WHERE id = :user_id")
+  sql = text(
+    """
+      SELECT u.id, u.username, u.email, u.avatar_url, u.user_status, c.title AS comic_title
+      FROM users u
+      LEFT JOIN comics c ON c.author_id = u.id
+      WHERE u.id = :user_id
+    """
+  )
   result = await session.execute(sql, {"user_id": user_id})
-  row = result.fetchone()
-  return dict(row._mapping) if row else None
+  rows = result.fetchall()
+  return [dict(row._mapping) for row in rows]
