@@ -28,3 +28,25 @@ async def getComicOfAuthor (author_id: int, page: int, session: AsyncSession):
   result = await session.execute(sql, {"author_id": author_id, "page": page})
   rows = result.fetchall()
   return [dict(row._mapping) for row in rows]
+
+async def searchComic (title: str | None, page: int, session: AsyncSession):
+  titleCondition = "WHERE c.title ILIKE :title" if title else ""
+  sqlQuery = f'''SELECT c.*, u.username AS author_name, u.email AS author_email
+    FROM comics c
+    INNER JOIN users u ON c.author_id = u.id
+    {titleCondition}
+    ORDER BY c.title
+    OFFSET 20 * (:page - 1) LIMIT 20
+  '''
+  sql = text(sqlQuery)
+
+  params = {
+    "title": f"%{title}%",
+    "page": page
+  } if title else {
+    "page": page
+  }
+
+  result = await session.execute(sql, params)
+  comics = result.fetchall()
+  return [dict(row._mapping) for row in comics]

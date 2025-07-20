@@ -10,10 +10,12 @@ router = APIRouter(
   # responses={404: {"description": "Not found"}},
 )
 
+# need check auth
 @router.get('/me')
 async def getMyInfo():
   return {"username": "test", "email": "test@gmail.com"}
 
+# need check role admin
 @router.get('/')
 async def getlistUser(session: AsyncSession = Depends(get_session)):
   return await listUser(session)
