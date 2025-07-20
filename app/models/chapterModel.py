@@ -10,7 +10,7 @@ class Chapter(Base):
 
   created_at = Column(DateTime(timezone=True), server_default=func.now())
   updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-  release_date = Column(Date, nullable=False)
+  release_date = Column(Date, nullable=True)
 
   comic_id = Column(Integer, ForeignKey('comics.id'))
   author_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True)
