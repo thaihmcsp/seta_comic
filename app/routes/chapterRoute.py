@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.deps import get_session
-from ..services.chapterService import getChaptersOfComic
+from ..services.chapterService import getChaptersOfComic, getOneChapterData
 
 router = APIRouter(
   prefix="/chapter",
@@ -17,3 +17,10 @@ async def getChaptersByComicId(
     session: AsyncSession = Depends(get_session)
   ):
   return await getChaptersOfComic(comic_id, page, session)
+
+@router.get("/{chapter_id}")
+async def getChapterById(
+    chapter_id: int,
+    session: AsyncSession = Depends(get_session)
+  ):
+  return await getOneChapterData(chapter_id, session)
