@@ -28,5 +28,4 @@ async def searchAuthors(
 
 @router.get('/{user_id}')
 async def getUserById(user_id: int, session: AsyncSession = Depends(get_session)):
-  print(23, user_id)
   return await getUserByUserId(user_id, session)
