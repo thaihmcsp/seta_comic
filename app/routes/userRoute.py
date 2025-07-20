@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..services.userService import listUser, getUserByUserId
+from ..services.userService import listUser, getUserByUserId, searchAuthorByText
 from app.db.deps import get_session
 
 router = APIRouter(
@@ -17,6 +17,14 @@ async def getMyInfo():
 @router.get('/')
 async def getlistUser(session: AsyncSession = Depends(get_session)):
   return await listUser(session)
+
+@router.get('/authors')
+async def searchAuthors(
+    page: int = Query(1, ge=1),
+    name: str | None = None,
+    session: AsyncSession = Depends(get_session)
+  ):
+  return await searchAuthorByText(page, name, session)
 
 @router.get('/{user_id}')
 async def getUserById(user_id: int, session: AsyncSession = Depends(get_session)):
