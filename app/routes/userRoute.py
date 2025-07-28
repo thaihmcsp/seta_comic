@@ -1,12 +1,10 @@
-from fastapi import APIRouter, Depends, Query
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..services.userService import listUser, getUserByUserId, searchAuthorByText
+from ..services.userService import listUser, getUserByUserId, searchAuthorByText, searchAuthorByText
 
 from ..core.dependencies import get_current_user
 from ..models.usersModel import User
 from ..schemas.user import UserOut
-from ..services.userService import listUser, getUserByUserId
 from app.db.deps import get_session
 
 router = APIRouter(
@@ -16,16 +14,11 @@ router = APIRouter(
   # responses={404: {"description": "Not found"}},
 )
 
-# need check auth
 @router.get('/me')
 async def getMyInfo(current_user: User = Depends(get_current_user)):
     return UserOut.model_validate(current_user)
 
-# need check role admin
-@router.get('/')
-async def getlistUser(session: AsyncSession = Depends(get_session)):
-  return await listUser(session)
-@router.get('list')
+@router.get('/list')
 async def getUserList(current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
   if current_user.role != "admin":
     raise HTTPException(status_code=403, detail="Not authorized")
