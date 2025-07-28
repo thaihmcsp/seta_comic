@@ -1,4 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.deps import get_session
+from ..services.comicService import getComicById, getComicOfAuthor, searchComic
 
 router = APIRouter(
   prefix="/comic",
@@ -7,6 +10,22 @@ router = APIRouter(
   # responses={404: {"description": "Not found"}},
 )
 
-@router.get('/:comic_id')
-async def getComicInfo():
-  return {"title": "test", "description": "test txt"}
+@router.get('/')
+async def getComicDataById(
+    title: str | None = None,
+    page: int = Query(1, ge=1),
+    session: AsyncSession = Depends(get_session)
+  ):
+  return await searchComic(title, page, session)
+
+@router.get('/{comic_id}')
+async def getComicDataById(comic_id: int, session: AsyncSession = Depends(get_session)):
+  return await getComicById(comic_id, session)
+
+@router.get('/author/{author_id}')
+async def getComicListByAuthorId(
+    author_id: int,
+    page: int = Query(1, ge=1),
+    session: AsyncSession = Depends(get_session)
+  ):
+  return await getComicOfAuthor(author_id, page, session)
