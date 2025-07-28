@@ -37,6 +37,7 @@ from app.models import (
     favoriteModel,
     readHistoryModel,
     commentModel,
+    userSessionModel,
 )  # <- triggers loading of models
 from app.models.base import Base
 
