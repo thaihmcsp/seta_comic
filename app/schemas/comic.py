@@ -2,6 +2,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+class BanComicRequest(BaseModel):
+    is_banned: bool = Field(..., description="Ban status of the comic")
+
 class UpdateComicRequest(BaseModel):
     title: Optional[str] = Field(None, title="Title of the comic")
     description: Optional[str] = Field(None, description="Description of the comic")
