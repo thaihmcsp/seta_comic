@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.deps import get_session
 from ..services.comicService import (
@@ -41,7 +41,7 @@ async def createComic(
     session: AsyncSession = Depends(get_session),
 ):
     if 'guest' in current_user.role:
-        return {"error": "Unauthorized: Guest role cannot create comics"}
+        raise HTTPException(status_code=403, detail="Unauthorized: Guest role cannot create comics")
     return await createNewComic(body, current_user, session)
 
 
@@ -62,7 +62,7 @@ async def updateComicData(
     session: AsyncSession = Depends(get_session),
 ):
     if 'guest' in current_user.role:
-        return {"error": "Unauthorized: Guest role cannot update comics"}
+        raise HTTPException(status_code=403, detail="Unauthorized: Guest role cannot update comics")
     return await updateComic(comic_id, body, current_user, session)
 
 
@@ -73,7 +73,7 @@ async def deleteComicData(
     session: AsyncSession = Depends(get_session),
 ):
     if 'guest' in current_user.role:
-        return {"error": "Unauthorized: Guest role cannot delete comics"}
+        raise HTTPException(status_code=403, detail="Unauthorized: Guest role cannot delete comics")
     return await deleteComic(comic_id, current_user, session)
 
 
@@ -88,7 +88,7 @@ async def banComicData(
 ):
     # Check if user has admin role
     if 'admin' not in current_user.role:
-        return {"error": "Unauthorized: Admin role required"}
+        raise HTTPException(status_code=403, detail="Unauthorized: Admin role required")
     return await banComic(comic_id, body.is_banned, session)
 
 
