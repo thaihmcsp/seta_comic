@@ -5,6 +5,7 @@ from ..models.usersModel import User
 from ..models.comicModel import Comic
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy import update
+from fastapi import HTTPException
 
 
 async def banComic(comic_id: int, is_banned: bool, session: AsyncSession):
@@ -48,7 +49,7 @@ async def updateComic(
         await session.refresh(comic)
         return comic
     except NoResultFound:
-        return {"error": "Comic not found"}
+        raise HTTPException(status_code=404, detail="Comic not found")  # Optional: raise 404 error
     except SQLAlchemyError as e:
         await session.rollback()
         return {"error": str(e)}
@@ -81,7 +82,7 @@ async def deleteComic(comic_id: int, current_user: User, session: AsyncSession):
         await session.commit()
         return {"message": "Comic and related data deleted successfully"}
     except NoResultFound:
-        return {"error": "Comic not found or not authorized to delete"}
+        raise HTTPException(status_code=404, detail="Comic not found or not authorized to delete")  # Optional: raise 404 error
     except SQLAlchemyError as e:
         await session.rollback()
         return {"error": str(e)}

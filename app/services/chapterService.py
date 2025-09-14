@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 async def getChaptersOfComic (comic_id: int, page: int, session: AsyncSession):
   sql = text(
@@ -102,7 +103,7 @@ async def deleteChapter(chapter_id: int, current_user, session: AsyncSession):
   comic_check = await session.execute(text("SELECT author_id FROM comics WHERE id = (SELECT comic_id FROM chapters WHERE id = :chapter_id)"), {"chapter_id": chapter_id})
   comic_author = comic_check.scalar_one_or_none()
   if comic_author != current_user.id:
-    return {"error": "Unauthorized to delete this chapter"}
+    raise HTTPException(status_code=403, detail="Unauthorized to delete this chapter")
 
   # Delete pages that refer to this chapter
   await session.execute(text("DELETE FROM pages WHERE chapter_id = :chapter_id"), {"chapter_id": chapter_id})

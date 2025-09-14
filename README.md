@@ -19,6 +19,10 @@ Create postgres db and update it to .env using .env.example format
 alembic upgrade head
 ```
 
+### Update env
+create .env file from .env.example template
+add your config
+
 ### Run app
 ```
 fastapi run app/main.py
