@@ -50,8 +50,6 @@ async def getOnePage(page_id: int, session: AsyncSession):
 async def upload_image_to_s3(file_content, file_name):
     try:
         url = f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{file_name}"
-        print(11111, "S3 Client initialized:", os.getenv("AWS_ACCESS_KEY_ID"), S3_BUCKET_NAME, os.getenv("AWS_SECRET_ACCESS_KEY"), os.getenv("AWS_REGION"))
-        print(53333, "Uploaded image to S3:", url)
          # Upload the file stream
         s3_client.upload_fileobj(file_content.file, S3_BUCKET_NAME, file_name)
         return url
