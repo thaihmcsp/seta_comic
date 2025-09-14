@@ -30,7 +30,7 @@ async def batchAddPagesAPI(
     return await batchAddPages(files, page_indexes, comic_id, chapter_id, current_user, session)
 
 
-@router.post('/batch-edit')
+@router.put('/batch-edit')
 async def batchEditPagesAPI(
     body: BatchEditPagesRequest,
     current_user: User = Depends(get_current_user),
