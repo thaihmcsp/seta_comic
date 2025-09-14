@@ -4,22 +4,44 @@ from ..schemas.comic import CreateComicRequest, UpdateComicRequest
 from ..models.usersModel import User
 from ..models.comicModel import Comic
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy import update
+
+
+async def banComic(comic_id: int, is_banned: bool, session: AsyncSession):
+    try:
+        stmt = update(Comic).where(Comic.id == comic_id).values(is_banned=is_banned)
+        await session.execute(stmt)
+        await session.commit()
+        return {"message": "Comic ban status updated successfully"}
+    except SQLAlchemyError as e:
+        await session.rollback()
+        return {"error": str(e)}
+
 
 async def updateComic(
-    comic_id: int,
-    body: UpdateComicRequest,
-    current_user: User,
-    session: AsyncSession
+    comic_id: int, body: UpdateComicRequest, current_user: User, session: AsyncSession
 ):
     try:
-        result = await session.execute(select(Comic).where(Comic.id == comic_id, Comic.author_id == current_user.id))
+        result = await session.execute(
+            select(Comic).where(
+                Comic.id == comic_id, Comic.author_id == current_user.id
+            )
+        )
         comic = result.scalars().one()
 
         comic.title = body.title if body.title is not None else comic.title
-        comic.description = body.description if body.description is not None else comic.description
-        comic.cover_url = body.cover_url if body.cover_url is not None else comic.cover_url
-        comic.is_published = body.is_published if body.is_published is not None else comic.is_published
-        comic.is_premium = body.is_premium if body.is_premium is not None else comic.is_premium
+        comic.description = (
+            body.description if body.description is not None else comic.description
+        )
+        comic.cover_url = (
+            body.cover_url if body.cover_url is not None else comic.cover_url
+        )
+        comic.is_published = (
+            body.is_published if body.is_published is not None else comic.is_published
+        )
+        comic.is_premium = (
+            body.is_premium if body.is_premium is not None else comic.is_premium
+        )
         comic.slug = body.slug if body.slug is not None else comic.slug
 
         await session.commit()
@@ -27,6 +49,39 @@ async def updateComic(
         return comic
     except NoResultFound:
         return {"error": "Comic not found"}
+    except SQLAlchemyError as e:
+        await session.rollback()
+        return {"error": str(e)}
+
+
+async def deleteComic(comic_id: int, current_user: User, session: AsyncSession):
+    try:
+        result = await session.execute(
+            select(Comic).where(
+                Comic.id == comic_id, Comic.author_id == current_user.id
+            )
+        )
+        comic = result.scalars().one()
+
+        # Deleting related data from other tables
+        await session.execute(
+            text("DELETE FROM chapters WHERE comic_id = :comic_id"),
+            {"comic_id": comic_id},
+        )
+        await session.execute(
+            text("DELETE FROM comic_categories WHERE comic_id = :comic_id"),
+            {"comic_id": comic_id},
+        )
+        await session.execute(
+            text("DELETE FROM read_histories WHERE comic_id = :comic_id"),
+            {"comic_id": comic_id},
+        )
+
+        await session.delete(comic)
+        await session.commit()
+        return {"message": "Comic and related data deleted successfully"}
+    except NoResultFound:
+        return {"error": "Comic not found or not authorized to delete"}
     except SQLAlchemyError as e:
         await session.rollback()
         return {"error": str(e)}
