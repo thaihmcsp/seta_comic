@@ -11,6 +11,7 @@ from app.models.userSessionModel import UserSession
 from app.models.usersModel import User
 from app.schemas.user import UserOut, RegisterRequest, LoginRequest, TokenResponse
 from app.services.authService import hash_password, verify_password, create_access_token, decode_access_token
+from fastapi.security import OAuth2PasswordRequestForm
 
 expires_in = 30 * 24 * 60 * 60
 router = APIRouter(
@@ -45,8 +46,8 @@ async def register(req: RegisterRequest, session: AsyncSession = Depends(get_ses
     return UserOut.model_validate(new_user)
 
 @router.post("/login", response_model=TokenResponse)
-async def login(req: LoginRequest, session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(User).where(User.email == req.email))
+async def login(req: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+    result = await session.execute(select(User).where(User.username == req.username))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.password_hash):
