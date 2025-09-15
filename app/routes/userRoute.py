@@ -16,7 +16,7 @@ from ..schemas.user import ChangePasswordRequest, UpdateUserRequest
 router = APIRouter(
   prefix="/user",
   tags=["user"],
-  dependencies=[Depends(oauth2_scheme)],
+  # dependencies=[Depends(oauth2_scheme)],
   # responses={404: {"description": "Not found"}},
 )
 

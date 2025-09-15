@@ -93,8 +93,6 @@ async def batchAddPages(files, page_indexes, comic_id, chapter_id, current_user,
             if not image_url:
                 continue
 
-            print(94444, "Image uploaded to S3:", image_url)    
-              
             new_page = Pages(
                 image_url=image_url,
                 page_index=page_index,

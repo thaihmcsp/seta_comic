@@ -25,7 +25,7 @@ class User(Base):
     is_premium = Column(Boolean, default=False)
     role = Column(
         SqlEnum(UserRole, name="userrole", create_type=True),
-        default=UserRole.guest
+        default=UserRole.user
     )
     user_status = Column(
         SqlEnum(UserStatus, name="userstatus", create_type=True),

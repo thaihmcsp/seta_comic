@@ -20,7 +20,7 @@ from app.schemas.comic import BanComicRequest
 router = APIRouter(
     prefix="/comic",
     tags=["comic"],
-    dependencies=[Depends(oauth2_scheme)],
+    # dependencies=[Depends(oauth2_scheme)],
     # responses={404: {"description": "Not found"}},
 )
 

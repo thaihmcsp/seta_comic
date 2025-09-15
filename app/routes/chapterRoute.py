@@ -18,7 +18,7 @@ from ..models.usersModel import User
 router = APIRouter(
     prefix="/chapter",
     tags=["chapter"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
 

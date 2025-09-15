@@ -11,7 +11,7 @@ from typing import List
 router = APIRouter(
   prefix="/page",
   tags=["page"],
-  dependencies=[Depends(get_current_user)],
+#   dependencies=[Depends(get_current_user)],
   # responses={404: {"description": "Not found"}},
 )
 

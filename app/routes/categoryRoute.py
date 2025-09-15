@@ -13,7 +13,7 @@ from ..schemas.category import CategoryCreateRequest, CategoryUpdateRequest
 router = APIRouter(
   prefix="/category",
   tags=["category"],
-  dependencies=[Depends(get_current_user)],
+  # dependencies=[Depends(get_current_user)],
   # responses={404: {"description": "Not found"}},
 )
 
