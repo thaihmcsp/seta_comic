@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.deps import get_session
 from ..services.comicService import (
@@ -11,10 +11,12 @@ from ..services.comicService import (
     banComic
 )
 from ..schemas.comic import CreateComicRequest, UpdateComicRequest
+from ..schemas.comic_category import ComicCategoryAddRequest, ComicCategoryUpdateRequest
 from ..core.dependencies import get_current_user, oauth2_scheme
 from ..models.usersModel import User
 from app.core.dependencies import oauth2_scheme
 from app.schemas.comic import BanComicRequest
+from sqlalchemy import text
 
 
 router = APIRouter(
@@ -77,7 +79,71 @@ async def deleteComicData(
     return await deleteComic(comic_id, current_user, session)
 
 
-from fastapi import Body
+@router.post("/add-categories")
+async def addComicCategories(
+    body: ComicCategoryAddRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    # Validate user is author of comic
+    result = await session.execute(text("SELECT author_id FROM comics WHERE id = :comic_id"), {"comic_id": body.comic_id})
+    author_id = result.scalar()
+    if author_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized: User is not the author of the comic")
+
+    # Insert categories
+    for category_id in body.categories:
+        await session.execute(text("INSERT INTO comic_categories (comic_id, category_id) VALUES (:comic_id, :category_id) ON CONFLICT DO NOTHING"), {"comic_id": body.comic_id, "category_id": category_id})
+    await session.commit()
+
+    # Fetch comic info and categories
+    comic_result = await session.execute(text("SELECT * FROM comics WHERE id = :comic_id"), {"comic_id": body.comic_id})
+    comic_row = comic_result.first()
+    if not comic_row:
+        raise HTTPException(status_code=404, detail="Comic not found")
+
+    categories_result = await session.execute(text("SELECT id, name, slug FROM categories WHERE id IN (SELECT category_id FROM comic_categories WHERE comic_id = :comic_id)"), {"comic_id": body.comic_id})
+    categories_rows = categories_result.fetchall()
+    comic_dict = dict(comic_row._mapping)
+    categories_list = [dict(row._mapping) for row in categories_rows]
+
+    return {"comic": comic_dict, "categories": categories_list}
+
+
+@router.put("/update-categories")
+async def updateComicCategories(
+    body: ComicCategoryUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    # Validate user is author of comic
+    result = await session.execute(text("SELECT author_id FROM comics WHERE id = :comic_id"), {"comic_id": body.comic_id})
+    author_id = result.scalar()
+    if author_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized: User is not the author of the comic")
+
+    # Delete old categories
+    await session.execute(text("DELETE FROM comic_categories WHERE comic_id = :comic_id"), {"comic_id": body.comic_id})
+
+    # Insert new categories
+    for category_id in body.categories:
+        await session.execute(text("INSERT INTO comic_categories (comic_id, category_id) VALUES (:comic_id, :category_id) ON CONFLICT DO NOTHING"), {"comic_id": body.comic_id, "category_id": category_id})
+
+    await session.commit()
+    # Fetch comic info and categories
+    comic_result = await session.execute(text("SELECT * FROM comics WHERE id = :comic_id"), {"comic_id": body.comic_id})
+    comic_row = comic_result.first()
+    if not comic_row:
+        raise HTTPException(status_code=404, detail="Comic not found")
+
+    categories_result = await session.execute(text("SELECT id, name, slug FROM categories WHERE id IN (SELECT category_id FROM comic_categories WHERE comic_id = :comic_id)"), {"comic_id": body.comic_id})
+    categories_rows = categories_result.fetchall()
+
+    comic_dict = dict(comic_row._mapping)
+    categories_list = [dict(row._mapping) for row in categories_rows]
+
+    return {"comic": comic_dict, "categories": categories_list}
+
 
 @router.put('/ban/{comic_id}')
 async def banComicData(
