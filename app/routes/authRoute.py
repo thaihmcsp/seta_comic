@@ -56,17 +56,56 @@ async def login(
     req: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_session),
 ):
+    # Try to find user by username
     result = await session.execute(select(User).where(User.username == req.username))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="Invalid username or password",
         )
     session_id = str(uuid.uuid4())
 
     # 2. Lưu session vào DB
+    new_session = UserSession(id=session_id, user_id=user.id)
+
+    session.add(new_session)
+    await session.commit()
+
+    expire_time = datetime.utcnow() + timedelta(seconds=expires_in)
+
+    token = create_access_token(
+        data={"sub": str(user.id), "sid": session_id, "role": user.role}
+    )
+    return TokenResponse(
+        access_token=token,
+        user_id=user.id,
+        role=user.role,
+        session_uuid=session_id,
+        exp=int(expire_time.timestamp()),
+    )
+
+
+@router.post("/login/json", response_model=TokenResponse)
+async def login_json(
+    login_data: LoginRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    # Try to find user by email or username
+    result = await session.execute(
+        select(User).where((User.email == login_data.email) | (User.username == login_data.email))
+    )
+    user = result.scalar_one_or_none()
+
+    if not user or not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email/username or password",
+        )
+    session_id = str(uuid.uuid4())
+
+    # Save session to DB
     new_session = UserSession(id=session_id, user_id=user.id)
 
     session.add(new_session)
