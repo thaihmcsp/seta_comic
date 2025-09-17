@@ -6,12 +6,11 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-
-# Make the entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
-
+COPY . /app
+ 
+# Keep entrypoint out of /app so the bind mount can't override it
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+ 
 EXPOSE 8000
-
-# Use the entrypoint script instead of directly running uvicorn
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
