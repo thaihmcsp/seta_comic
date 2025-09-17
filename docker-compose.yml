@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: seta_comic_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: seta-comic
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - seta-comic-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seta_comic_app
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:admin@postgres:5432/seta-comic
+    restart: unless-stopped
+    networks:
+      - seta-comic-network
+
+volumes:
+  postgres_data:
+
+networks:
+  seta-comic-network:
+    driver: bridge
